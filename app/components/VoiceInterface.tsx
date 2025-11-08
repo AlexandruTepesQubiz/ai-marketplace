@@ -7,6 +7,7 @@ import { Loader2Icon, PhoneIcon, PhoneOffIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import PhoneCallButton from "./PhoneCallButton"
 // import { Card } from "@/components/ui/card"
 import { Orb } from "@/components/ui/orb"
 // import { ShimmeringText } from "@/components/ui/shimmering-text"
@@ -27,6 +28,7 @@ type AgentState =
 export default function Page() {
   const [agentState, setAgentState] = useState<AgentState>("disconnected")
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [phoneData, setPhoneData] = useState<{ phoneNumber: string; sellerName?: string } | null>(null)
 
   const conversation = useConversation({
     onConnect: () => {
@@ -36,8 +38,28 @@ export default function Page() {
     onDisconnect: (event) => {
       console.log("error event", event)
       setAgentState("disconnected")
+      setPhoneData(null) // Clear phone data on disconnect
     },
-    onMessage: (message) => console.log("Agent message:", message),
+    onMessage: (message) => {
+      console.log("Agent message:", message)
+
+      // Check if this is a client tool call to display phone number
+      if (message.type === 'client_tool_call' || message.message?.type === 'client_tool_call') {
+        const toolCall = message.message || message
+        console.log("Client tool call received:", toolCall)
+
+        // Check if it's the display_phone_number tool
+        if (toolCall.tool_name === 'display_phone_number' || toolCall.name === 'display_phone_number') {
+          const params = toolCall.parameters || toolCall.params || {}
+          console.log("Display phone number params:", params)
+
+          setPhoneData({
+            phoneNumber: params.phone_number || params.phoneNumber,
+            sellerName: params.seller_name || params.sellerName,
+          })
+        }
+      }
+    },
     onError: (error) => {
       console.error("Conversation error:", error)
       setAgentState("disconnected")
@@ -235,6 +257,17 @@ export default function Page() {
           </AnimatePresence>
         </Button>
       </div>
+
+      {/* Phone Call Button - Shown when agent triggers display_phone_number */}
+      <AnimatePresence>
+        {phoneData && (
+          <PhoneCallButton
+            phoneNumber={phoneData.phoneNumber}
+            sellerName={phoneData.sellerName}
+            onClose={() => setPhoneData(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

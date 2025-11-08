@@ -29,11 +29,18 @@ export async function POST(request: NextRequest) {
 
     console.log("Processed search terms:", searchTerms);
 
-    // Fetch all products first - we'll do fuzzy matching in JavaScript
+    // Fetch all products with seller details - we'll do fuzzy matching in JavaScript
     // For better performance with large datasets, consider using pg_trgm extension
     const { data: allProducts, error: fetchError } = await supabase
       .from('products')
-      .select('*');
+      .select(`
+        *,
+        seller:seller_id (
+          first_name,
+          last_name,
+          phone_number
+        )
+      `);
 
     if (fetchError) {
       console.error('Database error:', fetchError);
