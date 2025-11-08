@@ -1,127 +1,21 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import SignInModal from './SignInModal';
 import SignUpModal from './SignUpModal';
+import VoiceInterface from './VoiceInterface';
 import { Button } from '@/components/ui/button';
 
-interface Message {
-  id: string;
-  text: string;
-  type: 'user' | 'system';
-  timestamp: Date;
-}
-
 export default function ChatInterface() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isRecording, setIsRecording] = useState(false);
-  const [isTranscribing, setIsTranscribing] = useState(false);
   const [showSignInModal, setShowSignInModal] = useState(false);
   const [showSignUpModal, setShowSignUpModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
   const { user, signOut, loading } = useAuth();
-
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        await transcribeAudio(audioBlob);
-
-        // Stop all tracks to release the microphone
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      mediaRecorder.start();
-      setIsRecording(true);
-
-      // Add system message
-      const systemMessage: Message = {
-        id: Date.now().toString(),
-        text: 'Recording... Click the microphone again to stop.',
-        type: 'system',
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, systemMessage]);
-
-    } catch (error) {
-      console.error('Error accessing microphone:', error);
-      alert('Error accessing microphone. Please ensure you have granted microphone permissions.');
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-    }
-  };
-
-  const transcribeAudio = async (audioBlob: Blob) => {
-    setIsTranscribing(true);
-
-    try {
-      const formData = new FormData();
-      formData.append('audio', audioBlob);
-
-      const response = await fetch('/api/transcribe', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        const userMessage: Message = {
-          id: Date.now().toString(),
-          text: data.text,
-          type: 'user',
-          timestamp: new Date(),
-        };
-        setMessages(prev => [...prev, userMessage]);
-      } else {
-        console.error('Transcription error:', data.error);
-        alert(`Transcription failed: ${data.error}`);
-      }
-    } catch (error) {
-      console.error('Error transcribing audio:', error);
-      alert('Failed to transcribe audio. Please try again.');
-    } finally {
-      setIsTranscribing(false);
-    }
-  };
-
-  const handleMicClick = () => {
-    // Require authentication before recording
-    if (!user) {
-      setShowSignUpModal(true);
-      return;
-    }
-
-    if (isRecording) {
-      stopRecording();
-    } else {
-      startRecording();
-    }
-  };
 
   const handleSignOut = async () => {
     await signOut();
     setShowUserMenu(false);
-    setMessages([]);
   };
 
   const getUserInitials = () => {
@@ -154,7 +48,7 @@ export default function ChatInterface() {
               Voice-First Marketplace
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              {user ? 'Click the microphone to start speaking' : 'Sign in to start using the marketplace'}
+              {user ? 'Talk to your AI marketplace assistant' : 'Sign in to start using the marketplace'}
             </p>
           </div>
 
@@ -208,120 +102,39 @@ export default function ChatInterface() {
         </div>
       </header>
 
-      {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-        {messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center text-gray-500 dark:text-gray-400">
-              <svg
-                className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-                />
-              </svg>
-              <p className="text-lg font-medium">
-                {user ? 'No messages yet' : 'Welcome to AI Marketplace'}
-              </p>
-              <p className="text-sm mt-2">
-                {user
-                  ? 'Click the microphone to start a conversation'
-                  : 'Sign in to start buying and selling with voice'}
-              </p>
-              {!user && (
-                <Button
-                  onClick={() => setShowSignUpModal(true)}
-                  className="mt-4"
-                >
-                  Get Started
-                </Button>
-              )}
-            </div>
-          </div>
+      {/* Voice Interface */}
+      <div className="flex-1 flex items-center justify-center p-6">
+        {user ? (
+          <VoiceInterface />
         ) : (
-          messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+          <div className="text-center text-gray-500 dark:text-gray-400 max-w-md">
+            <svg
+              className="w-24 h-24 mx-auto mb-6 text-gray-300 dark:text-gray-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <div
-                className={`max-w-[70%] rounded-2xl px-4 py-3 ${
-                  message.type === 'user'
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600'
-                }`}
-              >
-                <p className="text-sm leading-relaxed">{message.text}</p>
-                <p className={`text-xs mt-1 ${
-                  message.type === 'user' ? 'text-indigo-200' : 'text-gray-500 dark:text-gray-400'
-                }`}>
-                  {message.timestamp.toLocaleTimeString()}
-                </p>
-              </div>
-            </div>
-          ))
-        )}
-        {isTranscribing && (
-          <div className="flex justify-start">
-            <div className="bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600 rounded-2xl px-4 py-3">
-              <p className="text-sm">Transcribing...</p>
-            </div>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+              />
+            </svg>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+              Welcome to AI Marketplace
+            </h2>
+            <p className="text-lg mb-6">
+              Sign in to start buying and selling with voice
+            </p>
+            <Button
+              onClick={() => setShowSignUpModal(true)}
+              size="lg"
+            >
+              Get Started
+            </Button>
           </div>
         )}
-      </div>
-
-      {/* Microphone Button */}
-      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-6 py-6">
-        <div className="flex items-center justify-center">
-          <button
-            onClick={handleMicClick}
-            disabled={isTranscribing}
-            className={`relative flex items-center justify-center w-16 h-16 rounded-full transition-all duration-300 shadow-lg ${
-              isRecording
-                ? 'bg-red-500 hover:bg-red-600 animate-pulse'
-                : isTranscribing
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-indigo-600 hover:bg-indigo-700 hover:scale-110'
-            }`}
-          >
-            {isRecording ? (
-              <svg
-                className="w-8 h-8 text-white"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <rect x="6" y="6" width="12" height="12" rx="2" />
-              </svg>
-            ) : (
-              <svg
-                className="w-8 h-8 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-                />
-              </svg>
-            )}
-          </button>
-        </div>
-        <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-3">
-          {isRecording
-            ? 'Recording... Click to stop'
-            : isTranscribing
-            ? 'Transcribing your message...'
-            : 'Click to start recording'}
-        </p>
       </div>
     </div>
   );

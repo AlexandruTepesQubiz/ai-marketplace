@@ -1,0 +1,104 @@
+{
+  "type": "webhook",
+  "name": "CreateProduct",
+  "description": "Creates a new product listing in the marketplace when a user wants to sell something. Use this when you have collected the product name, price, and quantity unit from the user.",
+  "disable_interruptions": false,
+  "force_pre_tool_speech": "auto",
+  "assignments": [],
+  "tool_call_sound": null,
+  "tool_call_sound_behavior": "auto",
+  "execution_mode": "immediate",
+  "api_schema": {
+    "url": "https://park-citysearch-knight-everyday.trycloudflare.com/api/products/create",
+    "method": "POST",
+    "path_params_schema": [],
+    "query_params_schema": [],
+    "request_body_schema": {
+      "id": "body",
+      "type": "object",
+      "description": "Creates a new product listing in the marketplace when a user wants to sell something. Use this when you have collected the product name, price, and quantity unit from the user. IMPORTANT: Always include the user_id from dynamic variables.",
+      "properties": [
+        {
+          "id": "price",
+          "type": "number",
+          "value_type": "llm_prompt",
+          "description": "The price of the product as a positive number (e.g., 2.50, 10, 0.99)",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        },
+        {
+          "id": "description",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Optional description of the product",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        },
+        {
+          "id": "user_id",
+          "type": "string",
+          "value_type": "dynamic_variable",
+          "description": "",
+          "dynamic_variable": "user_id",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        },
+        {
+          "id": "quantity_unit",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "The unit for the price. Default to 'item' if not specified by the user.",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": [
+            "item",
+            "kg",
+            "g",
+            "lb",
+            "oz",
+            "liter",
+            "ml",
+            "gallon",
+            "dozen",
+            "pack",
+            "box",
+            "bag",
+            "bundle",
+            "unit"
+          ],
+          "is_system_provided": false,
+          "required": true
+        },
+        {
+          "id": "name",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "The name of the product being sold (e.g., \"Fresh Eggs\", \"Organic Milk\", \"Handmade Soap\")",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": false
+        }
+      ],
+      "required": false,
+      "value_type": "llm_prompt"
+    },
+    "request_headers": [],
+    "auth_connection": null
+  },
+  "response_timeout_secs": 20,
+  "dynamic_variables": {
+    "dynamic_variable_placeholders": {
+      "user_id": ""
+    }
+  }
+}
