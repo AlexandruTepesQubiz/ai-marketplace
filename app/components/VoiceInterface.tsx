@@ -13,7 +13,7 @@ import { Orb } from "@/components/ui/orb"
 
 const DEFAULT_AGENT = {
   agentId: process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID!,
-  name: "Customer Support",
+  name: "Marketplace Agent",
   description: "Tap to start voice chat",
 }
 

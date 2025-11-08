@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import SignInModal from './SignInModal';
 import SignUpModal from './SignUpModal';
@@ -12,6 +13,7 @@ export default function ChatInterface() {
   const [showSignUpModal, setShowSignUpModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const { user, signOut, loading } = useAuth();
+  const router = useRouter();
 
   const handleSignOut = async () => {
     await signOut();
@@ -75,6 +77,15 @@ export default function ChatInterface() {
               {/* User Menu Dropdown */}
               {showUserMenu && (
                 <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10">
+                  <button
+                    onClick={() => {
+                      router.push('/my-products');
+                      setShowUserMenu(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    My Products
+                  </button>
                   <button
                     onClick={handleSignOut}
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
