@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { useAuth } from '@/lib/contexts/AuthContext';
+import AuthModal from './AuthModal';
 
 interface Message {
   id: string;
@@ -13,8 +15,11 @@ export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const { user, signOut, loading } = useAuth();
 
   const startRecording = async () => {
     try {
@@ -97,6 +102,12 @@ export default function ChatInterface() {
   };
 
   const handleMicClick = () => {
+    // Require authentication before recording
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+
     if (isRecording) {
       stopRecording();
     } else {
@@ -104,16 +115,78 @@ export default function ChatInterface() {
     }
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    setShowUserMenu(false);
+    setMessages([]);
+  };
+
+  const getUserInitials = () => {
+    if (!user?.user_metadata?.full_name) return 'U';
+    const names = user.user_metadata.full_name.split(' ');
+    return names.length > 1
+      ? `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase()
+      : names[0][0].toUpperCase();
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+      {/* Auth Modal */}
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Voice-First Marketplace
-        </h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-          Click the microphone to start speaking
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Voice-First Marketplace
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              {user ? 'Click the microphone to start speaking' : 'Sign in to start using the marketplace'}
+            </p>
+          </div>
+
+          {/* Auth Section */}
+          {loading ? (
+            <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
+          ) : user ? (
+            <div className="relative">
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="flex items-center space-x-3 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg px-3 py-2 transition-colors"
+              >
+                <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-semibold">
+                  {getUserInitials()}
+                </div>
+                <div className="text-left hidden sm:block">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    {user.user_metadata?.full_name || 'User'}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
+                </div>
+              </button>
+
+              {/* User Menu Dropdown */}
+              {showUserMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10">
+                  <button
+                    onClick={handleSignOut}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+            >
+              Sign In
+            </button>
+          )}
+        </div>
       </header>
 
       {/* Messages Container */}
@@ -134,8 +207,22 @@ export default function ChatInterface() {
                   d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
                 />
               </svg>
-              <p className="text-lg font-medium">No messages yet</p>
-              <p className="text-sm mt-2">Click the microphone to start a conversation</p>
+              <p className="text-lg font-medium">
+                {user ? 'No messages yet' : 'Welcome to AI Marketplace'}
+              </p>
+              <p className="text-sm mt-2">
+                {user
+                  ? 'Click the microphone to start a conversation'
+                  : 'Sign in to start buying and selling with voice'}
+              </p>
+              {!user && (
+                <button
+                  onClick={() => setShowAuthModal(true)}
+                  className="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors"
+                >
+                  Get Started
+                </button>
+              )}
             </div>
           </div>
         ) : (
