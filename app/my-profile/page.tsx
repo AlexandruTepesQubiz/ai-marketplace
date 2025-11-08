@@ -17,7 +17,8 @@ import { Label } from '@/components/ui/label';
 interface Profile {
   id: string;
   email: string;
-  full_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
   phone_number: string | null;
   created_at: string;
   updated_at: string;
@@ -181,13 +182,23 @@ export default function MyProfilePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 sm:space-y-6">
-                {/* Full Name */}
+                {/* First Name */}
                 <div className="space-y-1.5 sm:space-y-2">
                   <Label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Full Name
+                    First Name
                   </Label>
                   <p className="text-sm sm:text-base text-gray-900 dark:text-white">
-                    {profile.full_name || 'Not set'}
+                    {profile.first_name || 'Not set'}
+                  </p>
+                </div>
+
+                {/* Last Name */}
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Last Name
+                  </Label>
+                  <p className="text-sm sm:text-base text-gray-900 dark:text-white">
+                    {profile.last_name || 'Not set'}
                   </p>
                 </div>
 

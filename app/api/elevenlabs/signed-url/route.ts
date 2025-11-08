@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       signedUrl: signed_url.signedUrl || signed_url,
       userId: user.id,
-      userName: user.user_metadata?.full_name || "User",
+      userName: user.user_metadata?.first_name || "User",
     });
   } catch (error) {
     console.error("Signed URL error:", error);

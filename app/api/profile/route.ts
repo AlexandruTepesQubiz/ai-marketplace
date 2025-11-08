@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     // Fetch the user's profile from the profiles table
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('id, email, full_name, phone_number, created_at, updated_at')
+      .select('id, email, first_name, last_name, phone_number, created_at, updated_at')
       .eq('id', userId)
       .single();
 
@@ -50,7 +50,8 @@ export async function GET(request: NextRequest) {
       profile: {
         id: profile.id,
         email: profile.email,
-        full_name: profile.full_name,
+        first_name: profile.first_name,
+        last_name: profile.last_name,
         phone_number: profile.phone_number,
         created_at: profile.created_at,
         updated_at: profile.updated_at,

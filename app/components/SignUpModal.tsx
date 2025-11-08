@@ -22,7 +22,9 @@ interface SignUpModalProps {
 export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignUpModalProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { signUp } = useAuth();
@@ -33,12 +35,22 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
     setLoading(true);
 
     try {
-      if (!fullName.trim()) {
-        setError('Please enter your full name');
+      if (!firstName.trim()) {
+        setError('Please enter your first name');
         setLoading(false);
         return;
       }
-      const { error } = await signUp(email, password, fullName);
+      if (!lastName.trim()) {
+        setError('Please enter your last name');
+        setLoading(false);
+        return;
+      }
+      if (!phoneNumber.trim()) {
+        setError('Please enter your phone number');
+        setLoading(false);
+        return;
+      }
+      const { error } = await signUp(email, password, firstName, lastName, phoneNumber);
       if (error) {
         setError(error.message);
       } else {
@@ -55,7 +67,9 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
   const resetForm = () => {
     setEmail('');
     setPassword('');
-    setFullName('');
+    setFirstName('');
+    setLastName('');
+    setPhoneNumber('');
     setError('');
   };
 
@@ -82,17 +96,31 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
         )}
 
         <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
-          <div className="space-y-1.5 sm:space-y-2">
-            <Label htmlFor="fullName" className="text-xs sm:text-sm">Full Name</Label>
-            <Input
-              id="fullName"
-              type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="John Doe"
-              required
-              className="text-sm sm:text-base h-9 sm:h-10"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="firstName" className="text-xs sm:text-sm">First Name</Label>
+              <Input
+                id="firstName"
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="John"
+                required
+                className="text-sm sm:text-base h-9 sm:h-10"
+              />
+            </div>
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="lastName" className="text-xs sm:text-sm">Last Name</Label>
+              <Input
+                id="lastName"
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Doe"
+                required
+                className="text-sm sm:text-base h-9 sm:h-10"
+              />
+            </div>
           </div>
 
           <div className="space-y-1.5 sm:space-y-2">
@@ -103,6 +131,19 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
+              required
+              className="text-sm sm:text-base h-9 sm:h-10"
+            />
+          </div>
+
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="phoneNumber" className="text-xs sm:text-sm">Phone Number</Label>
+            <Input
+              id="phoneNumber"
+              type="tel"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              placeholder="+1234567890"
               required
               className="text-sm sm:text-base h-9 sm:h-10"
             />

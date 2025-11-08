@@ -21,11 +21,27 @@ export default function ChatInterface() {
   };
 
   const getUserInitials = () => {
-    if (!user?.user_metadata?.full_name) return 'U';
-    const names = user.user_metadata.full_name.split(' ');
-    return names.length > 1
-      ? `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase()
-      : names[0][0].toUpperCase();
+    const firstName = user?.user_metadata?.first_name;
+    const lastName = user?.user_metadata?.last_name;
+
+    if (!firstName && !lastName) return 'U';
+
+    if (firstName && lastName) {
+      return `${firstName[0]}${lastName[0]}`.toUpperCase();
+    }
+
+    return (firstName?.[0] || lastName?.[0] || 'U').toUpperCase();
+  };
+
+  const getUserFullName = () => {
+    const firstName = user?.user_metadata?.first_name;
+    const lastName = user?.user_metadata?.last_name;
+
+    if (firstName && lastName) {
+      return `${firstName} ${lastName}`;
+    }
+
+    return firstName || lastName || 'User';
   };
 
   return (
@@ -65,7 +81,7 @@ export default function ChatInterface() {
               >
                 <div className="text-left hidden sm:block">
                   <p className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[120px] lg:max-w-none">
-                    {user.user_metadata?.full_name || 'User'}
+                    {getUserFullName()}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[120px] lg:max-w-none">{user.email}</p>
                 </div>

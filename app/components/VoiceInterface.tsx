@@ -83,6 +83,7 @@ export default function Page() {
         connectionType: "websocket",
         dynamicVariables: {
           user_id: userId,
+          user_name: userName,
         },
         onStatusChange: (status) => {
           console.log("Status change:", status)
@@ -127,11 +128,11 @@ export default function Page() {
   }, [conversation])
 
   return (
-    <div className="flex h-[300px] sm:h-[400px] w-full flex-col items-center justify-center overflow-hidden p-4 sm:p-6">
-      <div className="flex flex-col items-center gap-4 sm:gap-6">
-        <div className="relative size-24 sm:size-32">
-          <div className="bg-muted relative h-full w-full rounded-full p-1 shadow-[inset_0_2px_8px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_2px_8px_rgba(0,0,0,0.5)]">
-            <div className="bg-background h-full w-full overflow-hidden rounded-full shadow-[inset_0_0_12px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_0_12px_rgba(0,0,0,0.3)]">
+    <div className="flex min-h-[400px] sm:min-h-[500px] w-full flex-col items-center justify-center overflow-hidden p-4 sm:p-6">
+      <div className="flex flex-col items-center gap-6 sm:gap-8">
+        <div className="relative size-40 sm:size-48 md:size-56">
+          <div className="bg-muted relative h-full w-full rounded-full p-1.5 shadow-[inset_0_2px_12px_rgba(0,0,0,0.15)] dark:shadow-[inset_0_2px_12px_rgba(0,0,0,0.6)]">
+            <div className="bg-background h-full w-full overflow-hidden rounded-full shadow-[inset_0_0_16px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_0_16px_rgba(0,0,0,0.4)]">
               <Orb
                 className="h-full w-full"
                 volumeMode="manual"
@@ -197,7 +198,7 @@ export default function Page() {
           disabled={isTransitioning}
           size="icon"
           variant={isCallActive ? "secondary" : "default"}
-          className="h-10 w-10 sm:h-12 sm:w-12 rounded-full"
+          className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 rounded-full shadow-lg hover:shadow-xl transition-all"
         >
           <AnimatePresence mode="wait">
             {isTransitioning ? (
@@ -210,7 +211,7 @@ export default function Page() {
                   rotate: { duration: 1, repeat: Infinity, ease: "linear" },
                 }}
               >
-                <Loader2Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                <Loader2Icon className="!size-7"/>
               </motion.div>
             ) : isCallActive ? (
               <motion.div
@@ -219,7 +220,7 @@ export default function Page() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.5 }}
               >
-                <PhoneOffIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                <PhoneOffIcon className="!size-7" />
               </motion.div>
             ) : (
               <motion.div
@@ -228,7 +229,7 @@ export default function Page() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.5 }}
               >
-                <PhoneIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                <PhoneIcon className="!size-7"/>
               </motion.div>
             )}
           </AnimatePresence>
