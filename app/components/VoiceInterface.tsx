@@ -29,29 +29,66 @@ export default function Page() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const conversation = useConversation({
-    onConnect: () => console.log("Connected"),
-    onDisconnect: () => console.log("Disconnected"),
-    onMessage: (message) => console.log("Message:", message),
-    onError: (error) => {
-      console.error("Error:", error)
+    onConnect: () => {
+      console.log("Connected to ElevenLabs agent")
+      setAgentState("connected")
+    },
+    onDisconnect: () => {
+      console.log("Disconnected from ElevenLabs agent")
       setAgentState("disconnected")
+    },
+    onMessage: (message) => console.log("Agent message:", message),
+    onError: (error) => {
+      console.error("Conversation error:", error)
+      setAgentState("disconnected")
+      setErrorMessage("Connection error. Please try again.")
     },
   })
 
   const startConversation = useCallback(async () => {
     try {
+      console.log("Starting conversation flow...")
       setErrorMessage(null)
+
+      console.log("Requesting microphone access...")
       await navigator.mediaDevices.getUserMedia({ audio: true })
-      await conversation.startSession({
-        agentId: DEFAULT_AGENT.agentId,
-        connectionType: "webrtc",
-        onStatusChange: (status) => setAgentState(status.status),
+      console.log("Microphone access granted")
+
+      // Get signed URL from the API
+      console.log("Fetching signed URL...")
+      const response = await fetch("/api/elevenlabs/signed-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agentId: DEFAULT_AGENT.agentId }),
       })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error("Signed URL error:", errorData)
+        throw new Error(errorData.error || "Failed to get signed URL")
+      }
+
+      const { signedUrl } = await response.json()
+      console.log("Signed URL received, starting session...", signedUrl)
+
+      console.log("signed url is:", signedUrl)
+
+      await conversation.startSession({
+        signedUrl: signedUrl.signedUrl,
+        onStatusChange: (status) => {
+          console.log("Status change:", status)
+          setAgentState(status.status)
+        },
+      })
+
+      console.log("Session started successfully")
     } catch (error) {
       console.error("Error starting conversation:", error)
       setAgentState("disconnected")
       if (error instanceof DOMException && error.name === "NotAllowedError") {
         setErrorMessage("Please enable microphone permissions in your browser.")
+      } else {
+        setErrorMessage(`Failed to connect: ${error instanceof Error ? error.message : 'Unknown error'}`)
       }
     }
   }, [conversation])

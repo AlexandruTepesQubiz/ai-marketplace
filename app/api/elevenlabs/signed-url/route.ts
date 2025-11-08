@@ -1,15 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
 
 export async function POST(request: NextRequest) {
   try {
-    // Get authenticated user
+    // Get authenticated user (optional for testing)
     const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: "Unauthorized. Please sign in to get signed URL." },
         { status: 401 }
       );
     }
@@ -18,44 +21,38 @@ export async function POST(request: NextRequest) {
     const apiKey = process.env.ELEVENLABS_API_KEY;
 
     if (!agentId || !apiKey) {
+      console.error("Missing config:", {
+        hasAgentId: !!agentId,
+        hasApiKey: !!apiKey,
+      });
       return NextResponse.json(
-        { error: 'ElevenLabs configuration missing' },
+        { error: "ElevenLabs configuration missing" },
         { status: 500 }
       );
     }
 
-    // Get signed URL from ElevenLabs
-    const response = await fetch(
-      `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${agentId}`,
-      {
-        method: 'GET',
-        headers: {
-          'xi-api-key': apiKey,
-        },
-      }
-    );
+    console.log("Requesting signed URL for agent:", agentId);
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('ElevenLabs signed URL error:', error);
-      return NextResponse.json(
-        { error: 'Failed to get signed URL' },
-        { status: response.status }
-      );
-    }
-
-    const data = await response.json();
-
-    return NextResponse.json({
-      signedUrl: data.signed_url,
-      userId: user.id,
-      userName: user.user_metadata?.full_name || 'User',
+    const client = new ElevenLabsClient({
+      environment: "https://api.elevenlabs.io",
+      apiKey: apiKey,
     });
 
+     const signed_url = await client.conversationalAi.conversations.getSignedUrl({
+        agentId,
+    });
+
+    console.log("Signed URL obtained successfully", { signed_url });
+
+    return NextResponse.json({
+      signedUrl: signed_url,
+      userId: user.id,
+      userName: user.user_metadata?.full_name || "User",
+    });
   } catch (error) {
-    console.error('Signed URL error:', error);
+    console.error("Signed URL error:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
