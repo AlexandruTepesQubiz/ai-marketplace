@@ -2,7 +2,9 @@
 
 import { useState, useRef } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import AuthModal from './AuthModal';
+import SignInModal from './SignInModal';
+import SignUpModal from './SignUpModal';
+import { Button } from '@/components/ui/button';
 
 interface Message {
   id: string;
@@ -15,7 +17,8 @@ export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showSignInModal, setShowSignInModal] = useState(false);
+  const [showSignUpModal, setShowSignUpModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -104,7 +107,7 @@ export default function ChatInterface() {
   const handleMicClick = () => {
     // Require authentication before recording
     if (!user) {
-      setShowAuthModal(true);
+      setShowSignUpModal(true);
       return;
     }
 
@@ -131,8 +134,17 @@ export default function ChatInterface() {
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Auth Modal */}
-      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      {/* Auth Modals */}
+      <SignInModal
+        isOpen={showSignInModal}
+        onClose={() => setShowSignInModal(false)}
+        onSwitchToSignUp={() => setShowSignUpModal(true)}
+      />
+      <SignUpModal
+        isOpen={showSignUpModal}
+        onClose={() => setShowSignUpModal(false)}
+        onSwitchToSignIn={() => setShowSignInModal(true)}
+      />
 
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-6 py-4">
@@ -155,14 +167,14 @@ export default function ChatInterface() {
                 onClick={() => setShowUserMenu(!showUserMenu)}
                 className="flex items-center space-x-3 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg px-3 py-2 transition-colors"
               >
-                <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-semibold">
-                  {getUserInitials()}
-                </div>
-                <div className="text-left hidden sm:block">
+                <div className="text-left">
                   <p className="text-sm font-medium text-gray-900 dark:text-white">
                     {user.user_metadata?.full_name || 'User'}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
+                </div>
+                <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-semibold">
+                  {getUserInitials()}
                 </div>
               </button>
 
@@ -179,12 +191,19 @@ export default function ChatInterface() {
               )}
             </div>
           ) : (
-            <button
-              onClick={() => setShowAuthModal(true)}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-            >
-              Sign In
-            </button>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowSignInModal(true)}
+              >
+                Sign In
+              </Button>
+              <Button
+                onClick={() => setShowSignUpModal(true)}
+              >
+                Sign Up
+              </Button>
+            </div>
           )}
         </div>
       </header>
@@ -216,12 +235,12 @@ export default function ChatInterface() {
                   : 'Sign in to start buying and selling with voice'}
               </p>
               {!user && (
-                <button
-                  onClick={() => setShowAuthModal(true)}
-                  className="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors"
+                <Button
+                  onClick={() => setShowSignUpModal(true)}
+                  className="mt-4"
                 >
                   Get Started
-                </button>
+                </Button>
               )}
             </div>
           </div>

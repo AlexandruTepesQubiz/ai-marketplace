@@ -2,6 +2,8 @@
 
 This guide will help you set up Supabase authentication for the AI Marketplace.
 
+> **⚡ Quick Note:** Users can sign in immediately without email confirmation! See Step 3 for how to disable email confirmation.
+
 ## Prerequisites
 
 - A Supabase account (sign up at https://supabase.com)
@@ -25,7 +27,20 @@ This guide will help you set up Supabase authentication for the AI Marketplace.
    - **Project URL** (looks like: `https://xxxxxxxxxxxxx.supabase.co`)
    - **anon public** key (under "Project API keys")
 
-## Step 3: Update Your Environment Variables
+## Step 3: Disable Email Confirmation (Recommended for Development)
+
+To allow users to sign in immediately without email confirmation:
+
+1. In your Supabase dashboard, go to **Authentication** > **Providers**
+2. Scroll down to **Auth Providers** section
+3. Click on **Email** provider
+4. Find the **Confirm email** toggle
+5. **Turn OFF** the "Confirm email" option
+6. Click **Save**
+
+Now users can sign in immediately after signing up without needing to confirm their email!
+
+## Step 4: Update Your Environment Variables
 
 1. Open `.env.local` in your project
 2. Replace the Supabase placeholders with your actual values:
@@ -36,7 +51,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_actual_anon_key_here
 SUPABASE_DB_PASSWORD=your_database_password
 ```
 
-## Step 4: Run the Database Migration
+## Step 5: Run the Database Migration
 
 1. In your Supabase dashboard, click on the **SQL Editor** (in the sidebar)
 2. Click **New query**
@@ -49,20 +64,19 @@ This will create:
 - Row Level Security (RLS) policies for data protection
 - Automatic triggers to create profiles when users sign up
 
-## Step 5: Configure Email Settings (Optional but Recommended)
+## Step 6: Configure Email Settings (Optional)
 
-For production, you should configure custom email templates:
+For production, you can configure custom email templates:
 
 1. Go to **Authentication** > **Email Templates** in your Supabase dashboard
 2. Customize the email templates for:
-   - Confirm signup
    - Magic Link
    - Change Email Address
    - Reset Password
 
-For development, Supabase's default emails will work fine.
+Note: Since email confirmation is disabled, you don't need to customize the confirmation email template.
 
-## Step 6: Test Authentication
+## Step 7: Test Authentication
 
 1. Start your development server:
    ```bash
@@ -71,21 +85,19 @@ For development, Supabase's default emails will work fine.
 
 2. Open http://localhost:3000
 
-3. Click "Sign In" or "Get Started"
+3. Click "Sign Up" button
 
-4. Try creating a new account:
+4. Create a new account:
    - Enter your email
    - Enter a password (minimum 6 characters)
    - Enter your full name
    - Click "Sign Up"
 
-5. Check your email for the confirmation link (may be in spam)
+5. You should be automatically logged in! No email confirmation needed.
 
-6. Click the confirmation link to verify your email
+6. Your name should appear in the header with your initials in a blue circle.
 
-7. You should now be logged in!
-
-## Step 7: Verify Database Setup
+## Step 8: Verify Database Setup
 
 1. Go to **Table Editor** in your Supabase dashboard
 2. You should see a `profiles` table
@@ -114,16 +126,15 @@ With authentication set up, users can now:
 - Double-check that you copied the correct anon key from Supabase
 - Make sure there are no extra spaces in your .env.local file
 
-### "Email not confirmed" error
-- Check your email inbox (and spam folder)
-- In development, you can disable email confirmation in Supabase:
-  - Go to Authentication > Settings
-  - Disable "Enable email confirmations"
-
 ### Users can't sign up
 - Check the browser console for errors
 - Verify the SQL migration ran successfully
-- Check Supabase logs: Authentication > Logs
+- Check Supabase logs: **Authentication** > **Logs**
+- Make sure email confirmation is disabled (Step 3)
+
+### Users can't sign in immediately after signup
+- Verify that email confirmation is turned OFF in Supabase
+- Go to **Authentication** > **Providers** > **Email** and ensure "Confirm email" is disabled
 
 ### Changes not reflecting
 - Restart your Next.js development server after changing .env.local

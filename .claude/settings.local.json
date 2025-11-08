@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "WebFetch(domain:elevenlabs.io)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npx shadcn@latest init -y)",
+      "Bash(npx shadcn@latest add:*)"
     ],
     "deny": [],
     "ask": []
