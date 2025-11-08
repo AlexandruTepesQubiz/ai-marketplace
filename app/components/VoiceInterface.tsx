@@ -42,23 +42,6 @@ export default function Page() {
     },
     onMessage: (message) => {
       console.log("Agent message:", message)
-
-      // Check if this is a client tool call to display phone number
-      if (message.type === 'client_tool_call' || message.message?.type === 'client_tool_call') {
-        const toolCall = message.message || message
-        console.log("Client tool call received:", toolCall)
-
-        // Check if it's the display_phone_number tool
-        if (toolCall.tool_name === 'display_phone_number' || toolCall.name === 'display_phone_number') {
-          const params = toolCall.parameters || toolCall.params || {}
-          console.log("Display phone number params:", params)
-
-          setPhoneData({
-            phoneNumber: params.phone_number || params.phoneNumber,
-            sellerName: params.seller_name || params.sellerName,
-          })
-        }
-      }
     },
     onError: (error) => {
       console.error("Conversation error:", error)
@@ -106,6 +89,20 @@ export default function Page() {
         dynamicVariables: {
           user_id: userId,
           user_name: userName,
+        },
+        clientTools: {
+          display_phone_number: async ({ phone_number, seller_name }: { phone_number: string; seller_name?: string }) => {
+            console.log("Client tool called: display_phone_number", { phone_number, seller_name })
+
+            // Update state to show the phone button
+            setPhoneData({
+              phoneNumber: phone_number,
+              sellerName: seller_name,
+            })
+
+            // Return success message for the agent
+            return `Phone number ${phone_number}${seller_name ? ` for ${seller_name}` : ''} is now displayed on screen.`
+          }
         },
         onStatusChange: (status) => {
           console.log("Status change:", status)
