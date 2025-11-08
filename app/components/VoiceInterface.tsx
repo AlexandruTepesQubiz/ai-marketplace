@@ -127,9 +127,9 @@ export default function Page() {
   }, [conversation])
 
   return (
-    <div className="flex h-[400px] w-full flex-col items-center justify-center overflow-hidden p-6">
-      <div className="flex flex-col items-center gap-6">
-        <div className="relative size-32">
+    <div className="flex h-[300px] sm:h-[400px] w-full flex-col items-center justify-center overflow-hidden p-4 sm:p-6">
+      <div className="flex flex-col items-center gap-4 sm:gap-6">
+        <div className="relative size-24 sm:size-32">
           <div className="bg-muted relative h-full w-full rounded-full p-1 shadow-[inset_0_2px_8px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_2px_8px_rgba(0,0,0,0.5)]">
             <div className="bg-background h-full w-full overflow-hidden rounded-full shadow-[inset_0_0_12px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_0_12px_rgba(0,0,0,0.3)]">
               <Orb
@@ -142,8 +142,8 @@ export default function Page() {
           </div>
         </div>
 
-        <div className="flex flex-col items-center gap-2">
-          <h2 className="text-xl font-semibold">{DEFAULT_AGENT.name}</h2>
+        <div className="flex flex-col items-center gap-1.5 sm:gap-2">
+          <h2 className="text-lg sm:text-xl font-semibold">{DEFAULT_AGENT.name}</h2>
           <AnimatePresence mode="wait">
             {errorMessage ? (
               <motion.p
@@ -151,7 +151,7 @@ export default function Page() {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
-                className="text-destructive text-center text-sm"
+                className="text-destructive text-center text-xs sm:text-sm px-4"
               >
                 {errorMessage}
               </motion.p>
@@ -161,7 +161,7 @@ export default function Page() {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
-                className="text-muted-foreground text-sm"
+                className="text-muted-foreground text-xs sm:text-sm"
               >
                 {DEFAULT_AGENT.description}
               </motion.p>
@@ -171,16 +171,16 @@ export default function Page() {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
-                className="flex items-center gap-2"
+                className="flex items-center gap-1.5 sm:gap-2"
               >
                 <div
                   className={cn(
-                    "h-2 w-2 rounded-full transition-all duration-300",
+                    "h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full transition-all duration-300",
                     agentState === "connected" && "bg-green-500",
                     isTransitioning && "bg-primary/60 animate-pulse"
                   )}
                 />
-                <span className="text-sm capitalize">
+                <span className="text-xs sm:text-sm capitalize">
                   {isTransitioning ? (
                     <div />
                   ) : (
@@ -197,7 +197,7 @@ export default function Page() {
           disabled={isTransitioning}
           size="icon"
           variant={isCallActive ? "secondary" : "default"}
-          className="h-12 w-12 rounded-full"
+          className="h-10 w-10 sm:h-12 sm:w-12 rounded-full"
         >
           <AnimatePresence mode="wait">
             {isTransitioning ? (
@@ -210,7 +210,7 @@ export default function Page() {
                   rotate: { duration: 1, repeat: Infinity, ease: "linear" },
                 }}
               >
-                <Loader2Icon className="h-5 w-5" />
+                <Loader2Icon className="h-4 w-4 sm:h-5 sm:w-5" />
               </motion.div>
             ) : isCallActive ? (
               <motion.div
@@ -219,7 +219,7 @@ export default function Page() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.5 }}
               >
-                <PhoneOffIcon className="h-5 w-5" />
+                <PhoneOffIcon className="h-4 w-4 sm:h-5 sm:w-5" />
               </motion.div>
             ) : (
               <motion.div
@@ -228,7 +228,7 @@ export default function Page() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.5 }}
               >
-                <PhoneIcon className="h-5 w-5" />
+                <PhoneIcon className="h-4 w-4 sm:h-5 sm:w-5" />
               </motion.div>
             )}
           </AnimatePresence>

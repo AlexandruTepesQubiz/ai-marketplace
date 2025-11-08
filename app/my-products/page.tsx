@@ -130,93 +130,94 @@ export default function MyProductsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-3 sm:px-6 py-3 sm:py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
               My Products
             </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5 sm:mt-1 hidden sm:block">
               Manage your listed products
             </p>
           </div>
-          <Button onClick={() => router.push('/')} variant="outline">
-            Back to Home
+          <Button onClick={() => router.push('/')} variant="outline" size="sm" className="text-xs sm:text-sm flex-shrink-0">
+            Back
           </Button>
         </div>
       </header>
 
       {/* Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
         {loading ? (
-          <div className="text-center py-12">
-            <div className="text-gray-600 dark:text-gray-400">
+          <div className="text-center py-8 sm:py-12">
+            <div className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
               Loading your products...
             </div>
           </div>
         ) : error ? (
-          <div className="text-center py-12">
-            <div className="text-red-600 dark:text-red-400">{error}</div>
-            <Button onClick={fetchProducts} className="mt-4" variant="outline">
+          <div className="text-center py-8 sm:py-12 px-4">
+            <div className="text-sm sm:text-base text-red-600 dark:text-red-400 mb-3 sm:mb-4">{error}</div>
+            <Button onClick={fetchProducts} className="mt-4" variant="outline" size="sm">
               Retry
             </Button>
           </div>
         ) : products.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-gray-600 dark:text-gray-400 mb-4">
+          <div className="text-center py-8 sm:py-12 px-4">
+            <div className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-3 sm:mb-4">
               You haven't listed any products yet.
             </div>
-            <Button onClick={() => router.push('/')}>
+            <Button onClick={() => router.push('/')} size="sm" className="w-full sm:w-auto">
               Go to Marketplace
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {products.map((product) => (
               <Card key={product.id} className="flex flex-col">
-                <CardHeader>
-                  <CardTitle className="text-xl">{product.name}</CardTitle>
-                  <CardDescription>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg sm:text-xl">{product.name}</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">
                     Listed on {formatDate(product.created_at)}
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="flex-grow">
-                  <div className="space-y-3">
+                <CardContent className="flex-grow pb-3">
+                  <div className="space-y-2 sm:space-y-3">
                     <div>
-                      <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                      <p className="text-xl sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400">
                         ${product.price.toFixed(2)}
-                        <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">
+                        <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 ml-1">
                           per {product.quantity_unit}
                         </span>
                       </p>
                     </div>
                     {product.description && (
                       <div>
-                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
                           Description
                         </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-3">
                           {product.description}
                         </p>
                       </div>
                     )}
                     {product.meeting_point && (
                       <div>
-                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
                           Meeting Point
                         </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
                           {product.meeting_point}
                         </p>
                       </div>
                     )}
                   </div>
                 </CardContent>
-                <CardFooter>
+                <CardFooter className="pt-3">
                   <Button
                     onClick={() => handleDeleteClick(product)}
                     variant="destructive"
-                    className="w-full"
+                    size="sm"
+                    className="w-full text-xs sm:text-sm"
                   >
                     Delete Product
                   </Button>

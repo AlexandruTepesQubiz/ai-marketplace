@@ -60,23 +60,23 @@ export default function SignInModal({ isOpen, onClose, onSwitchToSignUp }: SignI
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="w-[calc(100%-2rem)] max-w-[425px] mx-auto">
         <DialogHeader>
-          <DialogTitle>Welcome Back</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-lg sm:text-xl">Welcome Back</DialogTitle>
+          <DialogDescription className="text-xs sm:text-sm">
             Sign in to your account to access the AI marketplace
           </DialogDescription>
         </DialogHeader>
 
         {error && (
-          <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3">
-            <p className="text-sm text-destructive">{error}</p>
+          <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-2.5 sm:p-3">
+            <p className="text-xs sm:text-sm text-destructive">{error}</p>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="email" className="text-xs sm:text-sm">Email</Label>
             <Input
               id="email"
               type="email"
@@ -84,11 +84,12 @@ export default function SignInModal({ isOpen, onClose, onSwitchToSignUp }: SignI
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               required
+              className="text-sm sm:text-base h-9 sm:h-10"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="password" className="text-xs sm:text-sm">Password</Label>
             <Input
               id="password"
               type="password"
@@ -97,15 +98,16 @@ export default function SignInModal({ isOpen, onClose, onSwitchToSignUp }: SignI
               placeholder="••••••••"
               required
               minLength={6}
+              className="text-sm sm:text-base h-9 sm:h-10"
             />
           </div>
 
-          <Button type="submit" disabled={loading} className="w-full">
+          <Button type="submit" disabled={loading} className="w-full h-9 sm:h-10 text-sm sm:text-base">
             {loading ? 'Signing in...' : 'Sign In'}
           </Button>
         </form>
 
-        <div className="text-center text-sm">
+        <div className="text-center text-xs sm:text-sm">
           <span className="text-muted-foreground">Don't have an account? </span>
           <button
             onClick={handleSwitchToSignUp}
