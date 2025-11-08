@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    const { name, price, quantity_unit = 'item', description, user_id } = body;
+    const { name, price, quantity_unit = 'item', description, meeting_point, user_id } = body;
 
     // Validate required fields
     if (!name || !price) {
@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
         price: priceNum,
         quantity_unit: quantity_unit.toLowerCase(),
         description: description?.trim() || null,
+        meeting_point: meeting_point?.trim() || null,
         seller_id: sellerId,
       })
       .select()
