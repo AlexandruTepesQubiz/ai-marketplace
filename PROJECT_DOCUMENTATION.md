@@ -15,9 +15,11 @@ The AI agent helps users:
 ## Technology Stack
 
 - Frontend: Next.js 15 with React and TypeScript
+- Deployment: Vercel
 - Database: Supabase (PostgreSQL)
 - AI Voice: ElevenLabs Conversational AI
 - Authentication: Supabase Auth
+- Presentation: Prezi
 
 ## Database Schema
 
