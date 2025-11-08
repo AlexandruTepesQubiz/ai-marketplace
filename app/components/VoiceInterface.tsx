@@ -68,13 +68,22 @@ export default function Page() {
         throw new Error(errorData.error || "Failed to get signed URL")
       }
 
-      const { signedUrl } = await response.json()
+      const { signedUrl, userName , userId } = await response.json()
       console.log("Signed URL received, starting session...", signedUrl)
 
       console.log("signed url is:", signedUrl)
+      console.log("user name is:", userName)
+      console.log("user id is:", userId)
 
       await conversation.startSession({
-        signedUrl: signedUrl.signedUrl,
+        signedUrl: signedUrl,
+        // clientTools: {
+        //   user_name: userName || "User",
+        // },
+        clientTools: {
+          user_name: userName || "User",
+          user_id: userId || "unknown_user",
+        },
         onStatusChange: (status) => {
           console.log("Status change:", status)
           setAgentState(status.status)

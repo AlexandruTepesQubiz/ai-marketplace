@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     console.log("Signed URL obtained successfully", { signed_url });
 
     return NextResponse.json({
-      signedUrl: signed_url,
+      signedUrl: signed_url.signedUrl || signed_url,
       userId: user.id,
       userName: user.user_metadata?.full_name || "User",
     });
