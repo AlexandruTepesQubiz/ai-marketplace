@@ -5,7 +5,8 @@
       "Bash(npm install:*)",
       "Bash(npx shadcn@latest init -y)",
       "Bash(npx shadcn@latest add:*)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "WebFetch(domain:ui.elevenlabs.io)"
     ],
     "deny": [],
     "ask": []

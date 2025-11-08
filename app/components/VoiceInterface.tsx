@@ -1,166 +1,193 @@
-'use client';
+"use client"
 
-import { useState } from 'react';
-import { useAuth } from '@/lib/contexts/AuthContext';
-import { useConversation } from '@elevenlabs/react';
-import { Button } from '@/components/ui/button';
+import { useCallback, useState } from "react"
+import { useConversation } from "@elevenlabs/react"
+import { AnimatePresence, motion } from "framer-motion"
+import { Loader2Icon, PhoneIcon, PhoneOffIcon } from "lucide-react"
 
-export default function VoiceInterface() {
-  const { user } = useAuth();
-  const [isListening, setIsListening] = useState(false);
-  const [conversationStarted, setConversationStarted] = useState(false);
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+// import { Card } from "@/components/ui/card"
+import { Orb } from "@/components/ui/orb"
+// import { ShimmeringText } from "@/components/ui/shimmering-text"
+
+const DEFAULT_AGENT = {
+  agentId: process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID!,
+  name: "Customer Support",
+  description: "Tap to start voice chat",
+}
+
+type AgentState =
+  | "disconnected"
+  | "connecting"
+  | "connected"
+  | "disconnecting"
+  | null
+
+export default function Page() {
+  const [agentState, setAgentState] = useState<AgentState>("disconnected")
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const conversation = useConversation({
-    onConnect: () => {
-      console.log('Connected to ElevenLabs');
-      setConversationStarted(true);
-    },
-    onDisconnect: () => {
-      console.log('Disconnected from ElevenLabs');
-      setConversationStarted(false);
-      setIsListening(false);
-    },
-    onMessage: (message) => {
-      console.log('Message:', message);
-    },
+    onConnect: () => console.log("Connected"),
+    onDisconnect: () => console.log("Disconnected"),
+    onMessage: (message) => console.log("Message:", message),
     onError: (error) => {
-      console.error('Conversation error:', error);
+      console.error("Error:", error)
+      setAgentState("disconnected")
     },
-    onModeChange: ({ mode }) => {
-      setIsListening(mode === 'listening');
-    },
-  });
+  })
 
-  const startConversation = async () => {
-    if (!user) return;
-
+  const startConversation = useCallback(async () => {
     try {
-      // Get signed URL from backend
-      const response = await fetch('/api/elevenlabs/signed-url', {
-        method: 'POST',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get signed URL');
-      }
-
-      const { signedUrl, userId, userName } = await response.json();
-
-      // Start session with signed URL
+      setErrorMessage(null)
+      await navigator.mediaDevices.getUserMedia({ audio: true })
       await conversation.startSession({
-        signedUrl,
-        overrides: {
-          agent: {
-            variables: {
-              user_id: userId,
-              user_name: userName,
-            },
-          },
-        },
-      });
+        agentId: DEFAULT_AGENT.agentId,
+        connectionType: "webrtc",
+        onStatusChange: (status) => setAgentState(status.status),
+      })
     } catch (error) {
-      console.error('Failed to start conversation:', error);
-      alert('Failed to start conversation. Please try again.');
+      console.error("Error starting conversation:", error)
+      setAgentState("disconnected")
+      if (error instanceof DOMException && error.name === "NotAllowedError") {
+        setErrorMessage("Please enable microphone permissions in your browser.")
+      }
     }
-  };
+  }, [conversation])
 
-  const endConversation = async () => {
-    await conversation.endSession();
-  };
+  const handleCall = useCallback(() => {
+    if (agentState === "disconnected" || agentState === null) {
+      setAgentState("connecting")
+      startConversation()
+    } else if (agentState === "connected") {
+      conversation.endSession()
+      setAgentState("disconnected")
+    }
+  }, [agentState, conversation, startConversation])
 
-  const getVolumeLevel = () => {
-    // Simple animation based on listening state
-    return isListening ? 'scale-110' : 'scale-100';
-  };
+  const isCallActive = agentState === "connected"
+  const isTransitioning =
+    agentState === "connecting" || agentState === "disconnecting"
+
+  const getInputVolume = useCallback(() => {
+    const rawValue = conversation.getInputVolume?.() ?? 0
+    return Math.min(1.0, Math.pow(rawValue, 0.5) * 2.5)
+  }, [conversation])
+
+  const getOutputVolume = useCallback(() => {
+    const rawValue = conversation.getOutputVolume?.() ?? 0
+    return Math.min(1.0, Math.pow(rawValue, 0.5) * 2.5)
+  }, [conversation])
 
   return (
-    <div className="flex flex-col items-center justify-center h-full space-y-8">
-      {/* Voice Bubble */}
-      <div className="relative flex items-center justify-center">
-        {/* Animated rings when listening */}
-        {isListening && (
-          <>
-            <div className="absolute w-96 h-96 rounded-full bg-primary/10 animate-ping"></div>
-            <div className="absolute w-80 h-80 rounded-full bg-primary/20 animate-pulse"></div>
-          </>
-        )}
-
-        {/* Main bubble */}
-        <div
-          className={`relative z-10 w-64 h-64 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center transition-all duration-300 shadow-2xl ${getVolumeLevel()}`}
-        >
-          {conversationStarted ? (
-            <div className="text-center text-white">
-              <svg
-                className={`w-24 h-24 mx-auto ${isListening ? 'animate-pulse' : ''}`}
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
-                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
-              </svg>
-              <p className="mt-4 text-sm font-medium">
-                {isListening ? 'Listening...' : 'Thinking...'}
-              </p>
+    <div className="flex h-[400px] w-full flex-col items-center justify-center overflow-hidden p-6">
+      <div className="flex flex-col items-center gap-6">
+        <div className="relative size-32">
+          <div className="bg-muted relative h-full w-full rounded-full p-1 shadow-[inset_0_2px_8px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_2px_8px_rgba(0,0,0,0.5)]">
+            <div className="bg-background h-full w-full overflow-hidden rounded-full shadow-[inset_0_0_12px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_0_12px_rgba(0,0,0,0.3)]">
+              <Orb
+                className="h-full w-full"
+                volumeMode="manual"
+                getInputVolume={getInputVolume}
+                getOutputVolume={getOutputVolume}
+              />
             </div>
-          ) : (
-            <div className="text-center text-white">
-              <svg
-                className="w-24 h-24 mx-auto"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-                />
-              </svg>
-              <p className="mt-4 text-sm font-medium">Ready to talk</p>
-            </div>
-          )}
+          </div>
         </div>
-      </div>
 
-      {/* Status Text */}
-      <div className="text-center max-w-md">
-        {conversationStarted ? (
-          <p className="text-muted-foreground">
-            {isListening
-              ? 'Speak now... I\'m listening'
-              : 'Processing your request...'}
-          </p>
-        ) : (
-          <p className="text-muted-foreground">
-            Click the button below to start talking with the marketplace assistant
-          </p>
-        )}
-      </div>
+        <div className="flex flex-col items-center gap-2">
+          <h2 className="text-xl font-semibold">{DEFAULT_AGENT.name}</h2>
+          <AnimatePresence mode="wait">
+            {errorMessage ? (
+              <motion.p
+                key="error"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="text-destructive text-center text-sm"
+              >
+                {errorMessage}
+              </motion.p>
+            ) : agentState === "disconnected" || agentState === null ? (
+              <motion.p
+                key="disconnected"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="text-muted-foreground text-sm"
+              >
+                {DEFAULT_AGENT.description}
+              </motion.p>
+            ) : (
+              <motion.div
+                key="status"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="flex items-center gap-2"
+              >
+                <div
+                  className={cn(
+                    "h-2 w-2 rounded-full transition-all duration-300",
+                    agentState === "connected" && "bg-green-500",
+                    isTransitioning && "bg-primary/60 animate-pulse"
+                  )}
+                />
+                <span className="text-sm capitalize">
+                  {isTransitioning ? (
+                    <div />
+                  ) : (
+                    <span className="text-green-600">Connected</span>
+                  )}
+                </span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
-      {/* Control Button */}
-      <div className="flex gap-4">
-        {!conversationStarted ? (
-          <Button
-            size="lg"
-            onClick={startConversation}
-            disabled={!user}
-            className="px-8"
-          >
-            Start Conversation
-          </Button>
-        ) : (
-          <Button
-            size="lg"
-            variant="destructive"
-            onClick={endConversation}
-            className="px-8"
-          >
-            End Conversation
-          </Button>
-        )}
+        <Button
+          onClick={handleCall}
+          disabled={isTransitioning}
+          size="icon"
+          variant={isCallActive ? "secondary" : "default"}
+          className="h-12 w-12 rounded-full"
+        >
+          <AnimatePresence mode="wait">
+            {isTransitioning ? (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0, rotate: 0 }}
+                animate={{ opacity: 1, rotate: 360 }}
+                exit={{ opacity: 0 }}
+                transition={{
+                  rotate: { duration: 1, repeat: Infinity, ease: "linear" },
+                }}
+              >
+                <Loader2Icon className="h-5 w-5" />
+              </motion.div>
+            ) : isCallActive ? (
+              <motion.div
+                key="end"
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.5 }}
+              >
+                <PhoneOffIcon className="h-5 w-5" />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="start"
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.5 }}
+              >
+                <PhoneIcon className="h-5 w-5" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </Button>
       </div>
     </div>
-  );
+  )
 }
