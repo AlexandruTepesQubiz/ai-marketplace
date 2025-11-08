@@ -29,18 +29,11 @@ export async function POST(request: NextRequest) {
 
     console.log("Processed search terms:", searchTerms);
 
-    // Fetch all products with seller details - we'll do fuzzy matching in JavaScript
+    // Fetch all products - we'll do fuzzy matching in JavaScript
     // For better performance with large datasets, consider using pg_trgm extension
-    const { data: allProducts, error: fetchError } = await supabase
+    const { data: products, error: fetchError } = await supabase
       .from('products')
-      .select(`
-        *,
-        seller:seller_id (
-          first_name,
-          last_name,
-          phone_number
-        )
-      `);
+      .select('*');
 
     if (fetchError) {
       console.error('Database error:', fetchError);
@@ -49,6 +42,31 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Get unique seller IDs
+    const sellerIds = [...new Set(products?.map(p => p.seller_id) || [])];
+
+    // Fetch seller profiles
+    const { data: sellers, error: sellersError } = await supabase
+      .from('profiles')
+      .select('id, first_name, last_name, phone_number')
+      .in('id', sellerIds);
+
+    if (sellersError) {
+      console.error('Sellers fetch error:', sellersError);
+      // Continue without seller info rather than failing
+    }
+
+    // Create a map of seller info
+    const sellersMap = new Map(
+      sellers?.map(s => [s.id, s]) || []
+    );
+
+    // Combine products with seller info
+    const allProducts = products?.map(product => ({
+      ...product,
+      seller: sellersMap.get(product.seller_id) || null
+    })) || [];
 
     // Score each product based on keyword matches
     const scoredProducts = allProducts.map(product => {
