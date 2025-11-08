@@ -1,21 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createServiceRoleClient } from '@/lib/supabase/service-role';
 
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
-    const { phone_number } = body;
+    const { phone_number, user_id } = body;
 
-    const supabase = await createClient();
+    // Determine if this is a webhook call or authenticated request
+    let userId: string;
+    let supabase;
 
-    // Get the authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (user_id) {
+      // Webhook call with user_id - use service role to bypass RLS
+      userId = user_id;
+      supabase = createServiceRoleClient();
+    } else {
+      // Standard authenticated request - use regular client with RLS
+      supabase = await createClient();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized. Please sign in to update your profile.' },
-        { status: 401 }
-      );
+      if (authError || !user) {
+        return NextResponse.json(
+          { error: 'Unauthorized. Please sign in to update your profile.' },
+          { status: 401 }
+        );
+      }
+      userId = user.id;
     }
 
     // Validate phone_number if provided (it's optional)
@@ -38,7 +49,7 @@ export async function PATCH(request: NextRequest) {
     const { data: profile, error: updateError } = await supabase
       .from('profiles')
       .update({ phone_number: sanitizedPhone })
-      .eq('id', user.id)
+      .eq('id', userId)
       .select()
       .single();
 
