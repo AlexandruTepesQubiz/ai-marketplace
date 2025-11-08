@@ -33,8 +33,8 @@ export default function Page() {
       console.log("Connected to ElevenLabs agent")
       setAgentState("connected")
     },
-    onDisconnect: () => {
-      console.log("Disconnected from ElevenLabs agent")
+    onDisconnect: (event) => {
+      console.log("error event", event)
       setAgentState("disconnected")
     },
     onMessage: (message) => console.log("Agent message:", message),
@@ -42,6 +42,9 @@ export default function Page() {
       console.error("Conversation error:", error)
       setAgentState("disconnected")
       setErrorMessage("Connection error. Please try again.")
+    },
+    onModeChange: (mode) => {
+      console.log("Mode changed:", mode)
     },
   })
 
@@ -77,12 +80,9 @@ export default function Page() {
 
       await conversation.startSession({
         signedUrl: signedUrl,
-        // clientTools: {
-        //   user_name: userName || "User",
-        // },
-        clientTools: {
-          user_name: userName || "User",
-          user_id: userId || "unknown_user",
+        connectionType: "websocket",
+        dynamicVariables: {
+          user_id: userId,
         },
         onStatusChange: (status) => {
           console.log("Status change:", status)
