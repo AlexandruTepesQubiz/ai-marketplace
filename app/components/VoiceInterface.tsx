@@ -262,6 +262,11 @@ export default function Page() {
             phoneNumber={phoneData.phoneNumber}
             sellerName={phoneData.sellerName}
             onClose={() => setPhoneData(null)}
+            onCallClick={() => {
+              // End the conversation when user clicks "Call Now"
+              conversation.endSession();
+              setAgentState("disconnected");
+            }}
           />
         )}
       </AnimatePresence>

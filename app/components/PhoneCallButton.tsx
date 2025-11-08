@@ -8,12 +8,18 @@ interface PhoneCallButtonProps {
   phoneNumber: string;
   sellerName?: string;
   onClose?: () => void;
+  onCallClick?: () => void;
 }
 
-export default function PhoneCallButton({ phoneNumber, sellerName, onClose }: PhoneCallButtonProps) {
+export default function PhoneCallButton({ phoneNumber, sellerName, onClose, onCallClick }: PhoneCallButtonProps) {
   const handleCall = () => {
     // Create tel: link to open phone app with the number
     window.location.href = `tel:${phoneNumber}`;
+
+    // Call the callback to end the conversation
+    if (onCallClick) {
+      onCallClick();
+    }
   };
 
   return (
